@@ -1,14 +1,11 @@
-import CanvasBoard from './components/CanvasBoard';
-
-function App() {
+const App = () => {
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        ✏️ UnitCanvas
+    <div style={{ background: '#fff', height: '100vh' }}>
+      <h1 style={{ color: 'red', textAlign: 'center', marginTop: '20vh' }}>
+        Uygulama ÇALIŞIYOR ✅
       </h1>
-      <CanvasBoard />
     </div>
   );
-}
+};
 
 export default App;
