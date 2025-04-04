@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Rect, Circle, Transformer, Text } from 'react-konva';
 import Sidebar from './Sidebar';
 import { useDrop } from 'react-dnd';
-import { ItemTypes } from './dnd/types';
+import { ItemTypes } from '../dnd/types';
 import { v4 as uuidv4 } from 'uuid';
 
 type ShapeType = 'rect' | 'circle' | 'text';
