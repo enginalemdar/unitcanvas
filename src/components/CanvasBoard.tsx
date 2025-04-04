@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Rect, Circle, Text, Transformer } from 'react-konva';
-import { useDrop } from 'react-dnd';
-import { v4 as uuidv4 } from 'uuid';
+import { Stage, Layer, Rect, Circle, Transformer, Text } from 'react-konva';
 import Sidebar from './Sidebar';
+import { useDrop } from 'react-dnd';
 import { ItemTypes } from '../dnd/types';
+import { v4 as uuidv4 } from 'uuid';
 
 type ShapeType = 'rect' | 'circle' | 'text';
 
@@ -17,12 +17,14 @@ interface Shape {
   radius?: number;
   fill?: string;
   text?: string;
+  fontSize?: number;
 }
 
 const CanvasBoard = () => {
   const stageRef = useRef<any>();
   const transformerRef = useRef<any>(null);
   const shapeRefs = useRef<{ [key: string]: any }>({});
+
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -44,7 +46,7 @@ const CanvasBoard = () => {
           x,
           y,
           width: 100,
-          height: 60,
+          height: 100,
           fill: '#60A5FA',
         };
       } else if (item.type === ItemTypes.CIRCLE) {
@@ -63,13 +65,14 @@ const CanvasBoard = () => {
           x,
           y,
           text: 'Yeni Metin',
+          fontSize: 20,
           fill: '#000000',
         };
       } else {
         return;
       }
 
-      setShapes((prev) => [...prev, newShape]);
+      setShapes([...shapes, newShape]);
     },
   }));
 
@@ -96,17 +99,20 @@ const CanvasBoard = () => {
             height: node.height() * scaleY,
           };
         } else if (shape.type === 'circle') {
+          const avgScale = (scaleX + scaleY) / 2;
           return {
             ...shape,
             x: node.x(),
             y: node.y(),
-            radius: (node.width() * scaleX) / 2,
+            radius: (node.radius || 40) * avgScale,
           };
         } else if (shape.type === 'text') {
+          const newFontSize = (shape.fontSize || 20) * scaleY;
           return {
             ...shape,
             x: node.x(),
             y: node.y(),
+            fontSize: newFontSize,
           };
         }
       }
@@ -126,7 +132,7 @@ const CanvasBoard = () => {
   };
 
   return (
-    <div className="flex w-full h-screen">
+    <div className="flex h-screen bg-gray-100">
       <Sidebar />
 
       <div ref={drop} className="flex-1 flex justify-center items-center">
@@ -179,7 +185,7 @@ const CanvasBoard = () => {
                   <Text
                     {...commonProps}
                     text={shape.text}
-                    fontSize={20}
+                    fontSize={shape.fontSize || 20}
                     fill={shape.fill}
                   />
                 );
