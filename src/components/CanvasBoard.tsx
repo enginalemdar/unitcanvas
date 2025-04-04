@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Rect, Circle, Transformer, Text } from 'react-konva';
-import Sidebar from '../dnd/Sidebar';
+import Sidebar from './Sidebar_t';
 import { useDrop } from 'react-dnd';
 import { ItemTypes } from '../dnd/types';
 import { v4 as uuidv4 } from 'uuid';
