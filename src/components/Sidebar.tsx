@@ -1,4 +1,4 @@
-import DragItem from '../DragItem';
+import DragItem from '../dnd/DragItem';
 import { ItemTypes } from '../dnd/types';
 import { Circle, Square, Text, ArrowRight } from 'lucide-react';
 
