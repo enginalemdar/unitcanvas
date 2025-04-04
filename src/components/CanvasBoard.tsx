@@ -1,7 +1,20 @@
+import { Stage, Layer, Rect } from 'react-konva';
+
 const CanvasBoard = () => {
   return (
-    <div style={{ background: 'white', border: '1px solid black', width: '100%', height: '100%' }}>
-      <h2 style={{ textAlign: 'center', marginTop: '10vh' }}>CanvasBoard render edildi 🎉</h2>
+    <div className="flex-1 flex justify-center items-center">
+      <Stage width={600} height={400} className="border shadow">
+        <Layer>
+          <Rect
+            x={100}
+            y={100}
+            width={150}
+            height={100}
+            fill="#60A5FA"
+            draggable
+          />
+        </Layer>
+      </Stage>
     </div>
   );
 };
