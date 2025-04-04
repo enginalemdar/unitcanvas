@@ -28,8 +28,8 @@ const CanvasBoard = () => {
       type: 'rect',
       x: 100,
       y: 100,
-      width: 100,
-      height: 60,
+      width: 120,
+      height: 70,
       fill: '#60A5FA',
     };
     setShapes([...shapes, newRect]);
@@ -39,8 +39,8 @@ const CanvasBoard = () => {
     const newCircle: Shape = {
       id: uuidv4(),
       type: 'circle',
-      x: 200,
-      y: 200,
+      x: 220,
+      y: 220,
       radius: 40,
       fill: '#FACC15',
     };
@@ -49,15 +49,16 @@ const CanvasBoard = () => {
 
   const handleDrag = (e: any, id: string) => {
     const updated = shapes.map((shape) =>
-      shape.id === id
-        ? { ...shape, x: e.target.x(), y: e.target.y() }
-        : shape
+      shape.id === id ? { ...shape, x: e.target.x(), y: e.target.y() } : shape
     );
     setShapes(updated);
   };
 
   const handleTransformEnd = (e: any, id: string) => {
     const node = e.target;
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
+
     const updated = shapes.map((shape) => {
       if (shape.id === id) {
         if (shape.type === 'rect') {
@@ -65,20 +66,23 @@ const CanvasBoard = () => {
             ...shape,
             x: node.x(),
             y: node.y(),
-            width: node.width() * node.scaleX(),
-            height: node.height() * node.scaleY(),
+            width: node.width() * scaleX,
+            height: node.height() * scaleY,
           };
         } else if (shape.type === 'circle') {
           return {
             ...shape,
             x: node.x(),
             y: node.y(),
-            radius: (node.width() * node.scaleX()) / 2,
+            radius: (node.width() * scaleX) / 2,
           };
         }
       }
       return shape;
     });
+
+    node.scaleX(1);
+    node.scaleY(1);
     setShapes(updated);
   };
 
@@ -90,11 +94,17 @@ const CanvasBoard = () => {
   }, [selectedId, shapes]);
 
   const handleSave = () => {
-    console.log('Kaydedilen JSON:', JSON.stringify(shapes));
+    const json = JSON.stringify(shapes);
+    console.log('Kayıt verisi:', json);
+    // Bubble API’ye gönderilebilir
   };
 
   const handleLoad = () => {
-    const fake = `[{"id":"1","type":"rect","x":50,"y":50,"width":100,"height":60,"fill":"#60A5FA"},{"id":"2","type":"circle","x":200,"y":200,"radius":40,"fill":"#FACC15"}]`;
+    const fake = `[{
+      "id":"1", "type":"rect", "x":50, "y":50, "width":100, "height":60, "fill":"#60A5FA"
+    },{
+      "id":"2", "type":"circle", "x":200, "y":200, "radius":40, "fill":"#FACC15"
+    }]`;
     setShapes(JSON.parse(fake));
   };
 
@@ -106,17 +116,12 @@ const CanvasBoard = () => {
   return (
     <div>
       <Controls onSave={handleSave} onLoad={handleLoad} onClear={handleClear} />
+
       <div className="flex justify-center gap-4 mb-4">
-        <button
-          onClick={addRectangle}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-        >
+        <button onClick={addRectangle} className="px-4 py-2 bg-purple-600 text-white rounded">
           Kutu Ekle
         </button>
-        <button
-          onClick={addCircle}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-        >
+        <button onClick={addCircle} className="px-4 py-2 bg-yellow-500 text-white rounded">
           Elips Ekle
         </button>
       </div>
@@ -172,7 +177,6 @@ const CanvasBoard = () => {
             <Transformer
               ref={transformerRef}
               boundBoxFunc={(oldBox, newBox) => {
-                // Limit resize too small
                 if (newBox.width < 20 || newBox.height < 20) return oldBox;
                 return newBox;
               }}
