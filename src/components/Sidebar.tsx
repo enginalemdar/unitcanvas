@@ -1,5 +1,5 @@
-import DragItem from './DragItem';
-import { ItemTypes } from './dnd/types';
+import DragItem from '../DragItem';
+import { ItemTypes } from '../dnd/types';
 import { Circle, Square, Text, ArrowRight } from 'lucide-react';
 
 const Sidebar = () => {
