@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { Stage, Layer, Rect, Circle, Transformer } from 'react-konva';
-import Controls from './Controls';
+import { useState, useRef, useEffect } from 'react';
+import { Stage, Layer, Rect, Circle, Transformer, Text } from 'react-konva';
+import Sidebar from './Sidebar';
+import { useDrop } from 'react-dnd';
+import { ItemTypes } from './dnd/types';
 import { v4 as uuidv4 } from 'uuid';
 
-type ShapeType = 'rect' | 'circle';
+type ShapeType = 'rect' | 'circle' | 'text';
 
 interface Shape {
   id: string;
@@ -14,45 +16,69 @@ interface Shape {
   height?: number;
   radius?: number;
   fill?: string;
+  text?: string;
 }
 
 const CanvasBoard = () => {
+  const stageRef = useRef<any>();
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const transformerRef = useRef<any>(null);
   const shapeRefs = useRef<{ [key: string]: any }>({});
 
-  const addRectangle = () => {
-    const newRect: Shape = {
-      id: uuidv4(),
-      type: 'rect',
-      x: 100,
-      y: 100,
-      width: 120,
-      height: 70,
-      fill: '#60A5FA',
-    };
-    setShapes([...shapes, newRect]);
-  };
+  const [, drop] = useDrop(() => ({
+    accept: Object.values(ItemTypes),
+    drop: (item: any, monitor) => {
+      const offset = monitor.getClientOffset();
+      const stageBox = stageRef.current.container().getBoundingClientRect();
 
-  const addCircle = () => {
-    const newCircle: Shape = {
-      id: uuidv4(),
-      type: 'circle',
-      x: 220,
-      y: 220,
-      radius: 40,
-      fill: '#FACC15',
-    };
-    setShapes([...shapes, newCircle]);
-  };
+      const x = offset.x - stageBox.left;
+      const y = offset.y - stageBox.top;
 
-  const handleDrag = (e: any, id: string) => {
-    const updated = shapes.map((shape) =>
-      shape.id === id ? { ...shape, x: e.target.x(), y: e.target.y() } : shape
-    );
-    setShapes(updated);
-  };
+      let newShape: Shape;
+
+      if (item.type === ItemTypes.RECT) {
+        newShape = {
+          id: uuidv4(),
+          type: 'rect',
+          x,
+          y,
+          width: 100,
+          height: 60,
+          fill: '#60A5FA',
+        };
+      } else if (item.type === ItemTypes.CIRCLE) {
+        newShape = {
+          id: uuidv4(),
+          type: 'circle',
+          x,
+          y,
+          radius: 40,
+          fill: '#FACC15',
+        };
+      } else if (item.type === ItemTypes.TEXT) {
+        newShape = {
+          id: uuidv4(),
+          type: 'text',
+          x,
+          y,
+          text: 'Yeni Metin',
+          fill: '#000000',
+        };
+      } else {
+        return;
+      }
+
+      setShapes([...shapes, newShape]);
+    },
+  }));
+
+  useEffect(() => {
+    if (selectedId && transformerRef.current && shapeRefs.current[selectedId]) {
+      transformerRef.current.nodes([shapeRefs.current[selectedId]]);
+      transformerRef.current.getLayer().batchDraw();
+    }
+  }, [selectedId, shapes]);
 
   const handleTransformEnd = (e: any, id: string) => {
     const node = e.target;
@@ -76,6 +102,12 @@ const CanvasBoard = () => {
             y: node.y(),
             radius: (node.width() * scaleX) / 2,
           };
+        } else if (shape.type === 'text') {
+          return {
+            ...shape,
+            x: node.x(),
+            y: node.y(),
+          };
         }
       }
       return shape;
@@ -86,51 +118,23 @@ const CanvasBoard = () => {
     setShapes(updated);
   };
 
-  useEffect(() => {
-    if (selectedId && transformerRef.current && shapeRefs.current[selectedId]) {
-      transformerRef.current.nodes([shapeRefs.current[selectedId]]);
-      transformerRef.current.getLayer().batchDraw();
-    }
-  }, [selectedId, shapes]);
-
-  const handleSave = () => {
-    const json = JSON.stringify(shapes);
-    console.log('Kayıt verisi:', json);
-    // Bubble API’ye gönderilebilir
-  };
-
-  const handleLoad = () => {
-    const fake = `[{
-      "id":"1", "type":"rect", "x":50, "y":50, "width":100, "height":60, "fill":"#60A5FA"
-    },{
-      "id":"2", "type":"circle", "x":200, "y":200, "radius":40, "fill":"#FACC15"
-    }]`;
-    setShapes(JSON.parse(fake));
-  };
-
-  const handleClear = () => {
-    setShapes([]);
-    setSelectedId(null);
+  const handleDrag = (e: any, id: string) => {
+    const updated = shapes.map((shape) =>
+      shape.id === id ? { ...shape, x: e.target.x(), y: e.target.y() } : shape
+    );
+    setShapes(updated);
   };
 
   return (
-    <div>
-      <Controls onSave={handleSave} onLoad={handleLoad} onClear={handleClear} />
+    <div className="flex">
+      <Sidebar />
 
-      <div className="flex justify-center gap-4 mb-4">
-        <button onClick={addRectangle} className="px-4 py-2 bg-purple-600 text-white rounded">
-          Kutu Ekle
-        </button>
-        <button onClick={addCircle} className="px-4 py-2 bg-yellow-500 text-white rounded">
-          Elips Ekle
-        </button>
-      </div>
-
-      <div className="flex justify-center items-center">
+      <div ref={drop} className="flex-1 flex justify-center items-center">
         <Stage
-          width={900}
+          width={1000}
           height={600}
-          className="bg-white border shadow rounded"
+          ref={stageRef}
+          className="bg-white border shadow"
           onMouseDown={(e) => {
             if (e.target === e.target.getStage()) {
               setSelectedId(null);
@@ -170,10 +174,19 @@ const CanvasBoard = () => {
                     fill={shape.fill}
                   />
                 );
+              } else if (shape.type === 'text') {
+                return (
+                  <Text
+                    {...commonProps}
+                    text={shape.text}
+                    fontSize={20}
+                    fill={shape.fill}
+                  />
+                );
               }
+
               return null;
             })}
-
             <Transformer
               ref={transformerRef}
               boundBoxFunc={(oldBox, newBox) => {
