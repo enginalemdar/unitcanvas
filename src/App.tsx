@@ -1,9 +1,9 @@
+import CanvasBoard from './components/CanvasBoard';
+
 const App = () => {
   return (
-    <div style={{ background: '#fff', height: '100vh' }}>
-      <h1 style={{ color: 'red', textAlign: 'center', marginTop: '20vh' }}>
-        Uygulama ÇALIŞIYOR ✅
-      </h1>
+    <div className="flex h-screen">
+      <CanvasBoard />
     </div>
   );
 };
